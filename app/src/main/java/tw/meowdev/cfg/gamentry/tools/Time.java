@@ -1,4 +1,4 @@
-package tw.meowdev.cfg.gamentry;
+package tw.meowdev.cfg.gamentry.tools;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;

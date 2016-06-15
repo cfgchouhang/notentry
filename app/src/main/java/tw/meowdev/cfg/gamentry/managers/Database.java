@@ -1,4 +1,4 @@
-package tw.meowdev.cfg.gamentry;
+package tw.meowdev.cfg.gamentry.managers;
 
 import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;
@@ -66,4 +66,11 @@ public class Database {
         return names;
     }
 
+    public static void reset(Context context) {
+        SQLiteDatabase db = getWritableDatabase(context);
+        db.execSQL("DROP TABLE IF EXISTS `"+Item.tableName+"`;");
+        db.execSQL("DROP TABLE IF EXISTS `"+Media.tableName+"`;");
+        db.execSQL(genCreateSQL(Item.tableName, Item.columns));
+        db.execSQL(genCreateSQL(Media.tableName, Media.columns));
+    }
 }

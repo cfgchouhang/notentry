@@ -16,22 +16,36 @@
         <ImageView
             android:id="@+id/infoImage"
             android:layout_width="match_parent"
-            android:layout_height="120dp"
+            android:layout_height="130dp"
+            android:layout_alignParentTop="true"
             android:scaleType="centerCrop" />
 
-        <TextView
-            android:id="@+id/infoText"
+        <RelativeLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:textSize="16sp"
-            android:text="Some Infa dsfasfasfdsf dsf"
-            android:textColor="#ffffff"
-            android:layout_below="@+id/infoImage"
-            android:paddingBottom="8dp"
-            android:paddingTop="8dp"
-            android:gravity="center_horizontal"
-            android:layout_alignParentBottom="true"
-            android:background="@color/blue1" />
+            android:padding="6dp"
+            android:background="@color/blue1"
+            android:layout_below="@+id/infoImage">
+
+            <TextView
+                android:id="@+id/infoText"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:textSize="18sp"
+                android:text="Some Infa dsfasfasfdsf dsf"
+                android:textColor="#ffffff"
+                android:gravity="center_horizontal"
+                android:layout_alignParentBottom="true" />
+
+            <ImageView
+                android:id="@+id/imgEdit"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_centerVertical="true"
+                android:layout_alignParentRight="true"
+                android:src="@drawable/ic_edit_white_24dp"/>
+        </RelativeLayout>
 
     </RelativeLayout>
+
 </android.support.v7.widget.CardView>

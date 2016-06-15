@@ -1,38 +1,41 @@
 package tw.meowdev.cfg.gamentry;
 
-import android.database.Cursor;
-import android.database.sqlite.SQLiteDatabase;
-import android.graphics.Bitmap;
-import android.graphics.drawable.Drawable;
+import android.content.Intent;
 import android.net.Uri;
-import android.os.Environment;
+import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentActivity;
+import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.support.v7.widget.RecyclerView;
-import android.support.v7.widget.StaggeredGridLayoutManager;
-import android.view.View;
-import android.widget.EditText;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 
-import com.squareup.picasso.Picasso;
-import com.squareup.picasso.Target;
-
-import java.io.File;
-import java.io.FileOutputStream;
-
-import tw.meowdev.cfg.gamentry.models.Item;
-import tw.meowdev.cfg.gamentry.models.Media;
+import tw.meowdev.cfg.gamentry.fragments.EditFragment;
+import tw.meowdev.cfg.gamentry.fragments.MainFragment;
+import tw.meowdev.cfg.gamentry.managers.Database;
 
 public class MainActivity extends AppCompatActivity {
+    private FragmentManager fragmentManager;
+    private static int MAIN_FRAGMENT = 0, EDIT_FRAGMENT = 1;
+    private int currentFragment;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        MainFragment f = new MainFragment();
-        FragmentTransaction tc = getSupportFragmentManager().beginTransaction();
-        tc.replace(R.id.container, f, "main").commit();
+        fragmentManager = getSupportFragmentManager();
+
+        if(savedInstanceState == null) {
+            MainFragment f = new MainFragment();
+            FragmentTransaction tc = getSupportFragmentManager().beginTransaction();
+            tc.replace(R.id.container, f, "main").commit();
+            currentFragment = MAIN_FRAGMENT;
+        }
+
+        onNewIntent(getIntent());
 
         /*ArrayList<HashMap<String, String>> list = new ArrayList<HashMap<String, String>>();
         HashMap<String,String> item1 = new HashMap<String,String>(), item2 = new HashMap<String,String>();
@@ -46,5 +49,88 @@ public class MainActivity extends AppCompatActivity {
         for(int i=0; i<10; i++) {
             list.add(i % 2 == 1 ? item1:item2);
         }*/
+        /*Intent intent = new Intent(this, FloatingBubbleService.class);
+        startService(intent);
+        Log.d("FUCK", "start service");*/
+    }
+
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+
+        super.onSaveInstanceState(outState);
+    }
+
+    @Override
+    protected void onNewIntent(Intent intent) {
+        Uri uri = intent.getData();
+        if(uri != null) {
+            String action = uri.getHost();
+            EditFragment fragment = (EditFragment)getSupportFragmentManager().findFragmentByTag("edit");
+            if(fragment == null) {
+                Bundle bundle = new Bundle();
+                bundle.putInt("action", EditFragment.ACTION_ADD);
+                bundle.putString("title", uri.getPath().substring(1));
+                bundle.putString("url", uri.getQuery());
+                bundle.putString("content", "empty");
+                gotoEditFragment(bundle);
+
+            } else {
+                fragment.edit(uri.getPath().substring(1), uri.getQuery(), "empty");
+            }
+        }
+    }
+
+    @Override
+    public void onBackPressed() {
+        FragmentManager fm = getSupportFragmentManager();
+
+        if (fm.getBackStackEntryCount() == 0) {
+            this.finish();
+        } else {
+            EditFragment f = (EditFragment)fm.findFragmentByTag("edit");
+            if(f == null || !f.webViewGoBack()) {
+                fm.popBackStack();
+            }
+        }
+    }
+
+    @Override
+    public void onDestroy() {
+        /*Intent intent = new Intent(this, FloatingBubbleService.class);
+        stopService(intent);
+        Log.d("FUCK", "stop service");*/
+        super.onDestroy();
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        MenuInflater inflater = getMenuInflater();
+        inflater.inflate(R.menu.main_menu, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        // Handle item selection
+        switch (item.getItemId()) {
+            case R.id.menu_resetdb:
+                Database.reset(this);
+                break;
+        }
+        return true;
+    }
+
+    public void gotoEditFragment(Bundle bundle) {
+        FragmentManager fragmentManager = getSupportFragmentManager();
+
+        EditFragment editFragment = new EditFragment();
+        editFragment.setArguments(bundle);
+
+        FragmentTransaction transaction = fragmentManager.beginTransaction();
+        transaction.setCustomAnimations(R.anim.enter, R.anim.exit, R.anim.pop_enter, R.anim.pop_exit);
+        transaction.replace(R.id.container, editFragment, "edit");
+        transaction.addToBackStack(null);
+        transaction.commit();
+        currentFragment = EDIT_FRAGMENT;
     }
 }

@@ -1,4 +1,4 @@
-package tw.meowdev.cfg.gamentry;
+package tw.meowdev.cfg.gamentry.views;
 
 import android.content.Context;
 import android.database.Cursor;
@@ -7,7 +7,8 @@ import android.net.Uri;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Toast;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
 
 import com.squareup.picasso.Picasso;
 
@@ -15,6 +16,8 @@ import java.io.File;
 import java.util.HashMap;
 import java.util.List;
 
+import tw.meowdev.cfg.gamentry.MainActivity;
+import tw.meowdev.cfg.gamentry.R;
 import tw.meowdev.cfg.gamentry.models.Item;
 import tw.meowdev.cfg.gamentry.models.Media;
 
@@ -23,7 +26,6 @@ import tw.meowdev.cfg.gamentry.models.Media;
  */
 public class Adapter extends CursorRecyclerViewAdapter<ItemViewHolder> {
 
-    private List<HashMap<String,String>> dataset;
     private SQLiteDatabase db;
     private Cursor cursor;
     private Context context;
@@ -49,7 +51,30 @@ public class Adapter extends CursorRecyclerViewAdapter<ItemViewHolder> {
         Item item = Item.fromCursor(cursor);
         Uri infoUri = Media.getInfoImageUri(db, item.id);
         holder.infoText.setText(item.title);
+        holder.id = item.id;
+        holder.context = this.context;
 
-        Picasso.with(context).load(new File(infoUri.toString())).into(holder.infoImage);
+        if(infoUri != null) {
+            Picasso.with(context).load(new File(infoUri.toString())).into(holder.infoImage);
+        } else {
+            Picasso.with(context).load(R.drawable.progress_animation).into(holder.infoImage);
+        }
+
+        setAnimation(holder, cursor.getPosition());
+    }
+
+    private void setAnimation(ItemViewHolder holder, int position) {
+        // If the bound view wasn't previously displayed on screen, it's animated
+        if (position > holder.lastPosition)
+        {
+            Animation animation = AnimationUtils.loadAnimation(context, android.R.anim.slide_in_left);
+            holder.cardView.startAnimation(animation);
+            holder.lastPosition = position;
+        }
+    }
+
+    @Override
+    public void onViewDetachedFromWindow(ItemViewHolder holder) {
+        holder.clearAnimation();
     }
 }

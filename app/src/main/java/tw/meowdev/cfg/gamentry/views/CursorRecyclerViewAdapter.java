@@ -1,4 +1,4 @@
-package tw.meowdev.cfg.gamentry;
+package tw.meowdev.cfg.gamentry.views;
 
 /*
  * Copyright (C) 2014 skyfish.jy@gmail.com
@@ -125,6 +125,7 @@ public abstract class CursorRecyclerViewAdapter<VH extends RecyclerView.ViewHold
             notifyDataSetChanged();
             //There is no notifyDataSetInvalidated() method in RecyclerView.Adapter
         }
+
         return oldCursor;
     }
 
