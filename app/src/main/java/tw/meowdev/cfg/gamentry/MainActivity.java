@@ -69,18 +69,8 @@ public class MainActivity extends AppCompatActivity {
     protected void onNewIntent(Intent intent) {
         Uri uri = intent.getData();
         if(uri != null) {
-            EditFragment fragment = (EditFragment)getSupportFragmentManager().findFragmentByTag("edit");
-            Map<String, String> urls = Misc.splitQuery(uri);
-            if(fragment == null) {
-                Bundle bundle = new Bundle();
-                bundle.putInt("action", EditFragment.ACTION_AUTO_ADD);
-                bundle.putString("title", uri.getPath().substring(1));
-                bundle.putString("webUrl", urls.get("web"));
-                bundle.putString("imageUrl", urls.get("image"));
-                gotoEditFragment(bundle);
-            } else {
-                fragment.add(uri.getPath().substring(1), urls.get("web"), urls.get("image"));
-            }
+            Map<String, String> query = Misc.splitQuery(uri);
+            EditFragment.autoAdd(this, uri.getPath().substring(1), query.get("web"), query.get("image"));
         }
     }
 

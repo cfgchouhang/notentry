@@ -23,18 +23,19 @@ public class Item {
             {"order", "INTEGER"}
     };
 
-    public long id = -1;
+    public long id;
     public String title, webUrl, imageUri;
     public int order;
 
     public Item() {
+        this.id = -1;
+        this.imageUri = "";
+        this.order = 0;
     }
 
-    public void set(String title, String weburl, String imguri) {
+    public void set(String title, String webUrl) {
         this.title = title;
-        this.webUrl = weburl;
-        this.imageUri = imguri;
-        this.order = 0;
+        this.webUrl = webUrl;
     }
 
     public static Item fromCursor(Cursor cursor) {
@@ -77,7 +78,6 @@ public class Item {
             this.id = db.insert(tableName, null, cv);
             Log.d("DB", String.format("insert %d %s\n%s\n%s", id, title, webUrl, imageUri));
         } else {
-            cv.remove("imageUri");
             db.update(tableName, cv, "`_id`=?", new String[]{Long.toString(this.id)});
             Log.d("DB", String.format("update %d %s\n%s\n%s", id, title, webUrl, imageUri));
         }

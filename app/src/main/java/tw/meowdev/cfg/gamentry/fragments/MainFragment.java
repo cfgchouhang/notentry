@@ -73,7 +73,10 @@ public class MainFragment extends Fragment {
         @Override
         public void onClick(View view) {
             if(view.getId() == R.id.fab) {
-                ((MainActivity)getActivity()).gotoEditFragment(null);
+                Bundle bundle = new Bundle();
+                bundle.putInt("action", EditFragment.ACTION_ADD);
+                bundle.putLong("id", -1);
+                ((MainActivity)getActivity()).gotoEditFragment(bundle);
             }
         }
     };

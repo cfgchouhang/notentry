@@ -1,6 +1,7 @@
 package tw.meowdev.cfg.gamentry.fragments;
 
 import android.animation.Animator;
+import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.database.sqlite.SQLiteDatabase;
@@ -51,37 +52,36 @@ public class EditFragment extends Fragment {
     private SQLiteDatabase db;
     private static String storagePath = Environment.getExternalStorageDirectory().getPath();
 
-    final public static int ACTION_AUTO_ADD = 0, ACTION_ADD = 1, ACTION_EDIT = 2;
+    final public static int ACTION_ADD = 1, ACTION_EDIT = 2;
+    private int action;
+    private long id;
+    private Item item;
+
     private boolean isClick = false;
-    private ArrayList<FileTarget> targetList;
     private Picasso picasso;
     private GestureDetector gestureDetector;
-    private Item editItem;
     private RelativeLayout webLayout;
-    private int action;
 
-    private Handler handler = new Handler() {
+    private static ArrayList<FileTarget> list = new ArrayList<FileTarget>();
+
+    private class SingleTapConfirm extends GestureDetector.SimpleOnGestureListener {
         @Override
-        public void handleMessage(Message msg) {
-            // Get link-URL.
-            String url = (String) msg.getData().get("url");
-
-            Log.d("FUCK", url);
-            // Do something with it.
-            if (url != null) {
-                imgUrl.setText(url);
-            }
+        public boolean onSingleTapUp(MotionEvent event) {
+            return true;
         }
-    };
+    }
 
-    public class FileTarget implements Target {
+    public static class FileTarget implements Target {
+        private Activity activity;
         private Item item;
         private SQLiteDatabase db;
+        private boolean isAuto;
 
-        public FileTarget(SQLiteDatabase db, Item item) {
+        public FileTarget(Activity activity, SQLiteDatabase db, Item item, boolean isAuto) {
+            this.activity = activity;
             this.db = db;
             this.item = item;
-            Log.d("FUCK", item.imageUri+" "+item.id);
+            this.isAuto = isAuto;
         }
 
         @Override
@@ -93,14 +93,15 @@ public class EditFragment extends Fragment {
                     File file;
 
                     // resize the bitmap
-                    Display display = getActivity().getWindowManager().getDefaultDisplay();
+                    Log.d("FUCK", " ft "+item.imageUri);
+                    Display display = activity.getWindowManager().getDefaultDisplay();
                     Point size = new Point();
                     display.getSize(size);
                     int width = size.x;
                     Bitmap bitmap = Bitmap.createScaledBitmap(tmp, width, tmp.getHeight()*width/tmp.getWidth(), false);
-                    //tmp.recycle();
 
                     // sync image uri of item into db
+                    Log.d("FUCK", " ft "+item.imageUri);
                     if(item.imageUri.equals("")) {
                         file = new File(String.format("%s/%s.jpg", storagePath, System.currentTimeMillis()));
                         item.updateImage(db, file.toString());
@@ -113,6 +114,7 @@ public class EditFragment extends Fragment {
                         file.createNewFile();
                         FileOutputStream ostream = new FileOutputStream(file);
                         bitmap.compress(Bitmap.CompressFormat.JPEG, 100, ostream);
+                        ostream.flush();
                         ostream.close();
                         Log.d("FILE", String.format("store %s", file.toString()));
                     } catch (Exception e) {
@@ -124,11 +126,8 @@ public class EditFragment extends Fragment {
 
                 @Override
                 protected void onPostExecute(Void v) {
-                    webLayout.setVisibility(View.GONE);
-                    targetList.remove(FileTarget.this);
-                    if(isClick) {
-                        getActivity().onBackPressed();
-                    }
+                    list.remove(this);
+                    if(!isAuto) activity.onBackPressed();
                 }
             }.execute(bitmap, this.item);
         }
@@ -145,40 +144,42 @@ public class EditFragment extends Fragment {
         public void onClick(View view) {
             if(view.getId() == R.id.btnSave && !isClick) {
                 isClick = true;
-                if(action == ACTION_EDIT)
-                    edit(title.getText().toString(), webUrl.getText().toString(), imgUrl.getText().toString());
-                else
-                    add(title.getText().toString(), webUrl.getText().toString(), imgUrl.getText().toString());
+                addOrEdit(title.getText().toString(), webUrl.getText().toString(), imgUrl.getText().toString());
+                webLayout.setVisibility(View.GONE);
             } else if(view.getId() == R.id.btnWeb) {
                 slideWebLayout();
             }
         }
     };
 
-    public void add(String title, String weburl, String imgurl) {
-        editItem = new Item();
-        editItem.set(title, weburl, "");
-        editItem.insertOrUpdate(db);
+    public void addOrEdit(String title, String webUrl, String imgUrl) {
+        item.set(title, webUrl);
+        item.insertOrUpdate(db);
 
-        Log.d("FUCK", editItem.imageUri);
-        FileTarget ft = new FileTarget(db, editItem);
-        targetList.add(ft);
-        picasso.load(Uri.parse(imgurl)).into(ft);
+        if(!imgUrl.equals("")) {
+            Log.d("FUCK", imgUrl);
+            FileTarget ft = new FileTarget(getActivity(), db, item, false);
+            list.add(ft);
+            picasso.load(Uri.parse(imgUrl)).into(ft);
+        } else {
+            getActivity().onBackPressed();
+        }
     }
 
-    public void edit(String title, String weburl, String imgurl) {
-        editItem.set(title, weburl, editItem.imageUri);
-        editItem.insertOrUpdate(db);
+    public static void autoAdd(Activity activity, String title, String webUrl, String imgUrl) {
+        SQLiteDatabase db = Database.getWritableDatabase(activity);
+        Item item = new Item();
+        item.set(title, webUrl);
+        item.insertOrUpdate(db);
 
-        Log.d("FUCK", "EDIT "+editItem.id+" "+editItem.imageUri);
-        FileTarget ft = new FileTarget(db, editItem);
-        targetList.add(ft);
-        picasso.load(Uri.parse(imgurl)).into(ft);
+        FileTarget ft = new FileTarget(activity, db, item, true);
+        list.add(ft);
+        Picasso.with(activity).load(Uri.parse(imgUrl)).into(ft);
     }
 
-    private void setItemToUI(Item editItem) {
-        title.setText(editItem.title);
-        webUrl.setText(editItem.webUrl);
+    private void setContent() {
+        title.setText(item.title);
+        webUrl.setText(item.webUrl);
     }
 
     private void slideWebLayout() {
@@ -222,16 +223,13 @@ public class EditFragment extends Fragment {
         webUrl = (EditText)view.findViewById(R.id.editWebUrl);
         imgUrl = (EditText)view.findViewById(R.id.editImgUrl);
 
-
         webLayout = (RelativeLayout)view.findViewById(R.id.webLayout);
-        webView = (WebView)view.findViewById(R.id.webView);
         urlbar = (EditText)view.findViewById(R.id.urlbar);
-
+        webView = (WebView)view.findViewById(R.id.webView);
         webView.getSettings().setJavaScriptEnabled(true);
         webView.getSettings().setLoadWithOverviewMode(true);
         webView.getSettings().setBuiltInZoomControls(true);
         webView.getSettings().setUseWideViewPort(true);
-
         webView.setWebViewClient(new WebViewClient() {
             @Override
             public boolean shouldOverrideUrlLoading(WebView view, String url) {
@@ -247,18 +245,9 @@ public class EditFragment extends Fragment {
         });
 
         webView.loadUrl("http://www.google.com");
-        targetList = new ArrayList<FileTarget>();
+
         return view;
     }
-
-    private class SingleTapConfirm extends GestureDetector.SimpleOnGestureListener {
-        @Override
-        public boolean onSingleTapUp(MotionEvent event) {
-            return true;
-        }
-    }
-
-
 
     @Override
     public void onActivityCreated (Bundle savedInstanceState) {
@@ -273,24 +262,18 @@ public class EditFragment extends Fragment {
             }
         }).build();
 
-
         action = ACTION_ADD;
-        editItem = new Item();
         Bundle bundle = getArguments();
-        if(bundle != null && bundle.containsKey("action")) {
-            int action = bundle.getInt("action");
-            if(action == ACTION_AUTO_ADD) {
-                add(bundle.getString("title"), bundle.getString("webUrl"), bundle.getString("imageUrl"));
-            } else if(action == ACTION_EDIT) {
-                editItem = Item.query(db, bundle.getLong("id"));
-                if(editItem != null) {
-                    setItemToUI(editItem);
-                    action = ACTION_EDIT;
-                } else
-                    editItem = new Item();
+        if(bundle != null) {
+            action = bundle.getInt("action");
+            id = bundle.getLong("id");
+        }
 
-                Log.d("FUCK", "edit id "+editItem.id);
-            }
+        if(action == ACTION_ADD) {
+            item = new Item();
+        } else if(action == ACTION_EDIT) {
+            item = Item.query(db, id);
+            setContent();
         }
 
         gestureDetector = new GestureDetector(getActivity(), new SingleTapConfirm());
@@ -298,9 +281,6 @@ public class EditFragment extends Fragment {
 
     @Override
     public void onDetach () {
-        if(targetList != null)
-            targetList.clear();
-
         View view = getActivity().getCurrentFocus();
         if (view != null) {
             InputMethodManager imm = (InputMethodManager)getActivity().getSystemService(Context.INPUT_METHOD_SERVICE);
