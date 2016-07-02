@@ -5,7 +5,6 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 
 import tw.meowdev.cfg.gamentry.models.Item;
-import tw.meowdev.cfg.gamentry.models.Media;
 
 /**
  * Created by cfg on 5/20/16.
@@ -22,13 +21,11 @@ public class Database {
                 @Override
                 public void onCreate(SQLiteDatabase db) {
                     db.execSQL(genCreateSQL(Item.tableName, Item.columns));
-                    db.execSQL(genCreateSQL(Media.tableName, Media.columns));
                 }
 
                 @Override
                 public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
                     db.execSQL("DROP TABLE IF EXISTS `"+Item.tableName+"`;");
-                    db.execSQL("DROP TABLE IF EXISTS `"+Media.tableName+"`;");
                     onCreate(db);
                 }
             };
@@ -69,8 +66,6 @@ public class Database {
     public static void reset(Context context) {
         SQLiteDatabase db = getWritableDatabase(context);
         db.execSQL("DROP TABLE IF EXISTS `"+Item.tableName+"`;");
-        db.execSQL("DROP TABLE IF EXISTS `"+Media.tableName+"`;");
         db.execSQL(genCreateSQL(Item.tableName, Item.columns));
-        db.execSQL(genCreateSQL(Media.tableName, Media.columns));
     }
 }

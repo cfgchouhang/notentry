@@ -22,7 +22,6 @@ public class ItemViewHolder extends RecyclerView.ViewHolder implements View.OnCl
     public ImageView infoImage;
     public long id;
     public Context context;
-    public int lastPosition = -1;
 
     public ItemViewHolder(View itemView) {
         super(itemView);

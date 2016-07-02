@@ -10,26 +10,25 @@
         android:id="@+id/editTitle"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:singleLine="true"
         android:hint="title" />
 
     <EditText
-        android:id="@+id/editUrl"
+        android:id="@+id/editWebUrl"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_below="@+id/editTitle"
         android:singleLine="true"
-        android:hint="info image url"/>
+        android:hint="web url"/>
 
     <EditText
-        android:id="@+id/editContent"
+        android:id="@+id/editImgUrl"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_below="@+id/editUrl"
-        android:layout_above="@+id/btnWeb"
-        android:inputType="textMultiLine"
-        android:scrollbars="vertical"
-        android:hint="entry content"
-        android:gravity="top|start" />
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/editWebUrl"
+        android:singleLine="true"
+        android:hint="image url"/>
+
     <Button
         android:id="@+id/btnWeb"
         android:layout_width="wrap_content"

@@ -4,6 +4,8 @@ import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.net.Uri;
+import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -19,21 +21,19 @@ import java.util.List;
 import tw.meowdev.cfg.gamentry.MainActivity;
 import tw.meowdev.cfg.gamentry.R;
 import tw.meowdev.cfg.gamentry.models.Item;
-import tw.meowdev.cfg.gamentry.models.Media;
 
 /**
  * Created by cfg on 5/19/16.
  */
-public class Adapter extends CursorRecyclerViewAdapter<ItemViewHolder> {
+public class Adapter extends RecyclerView.Adapter<ItemViewHolder> {
 
     private SQLiteDatabase db;
-    private Cursor cursor;
+    private List<Item> list;
     private Context context;
 
-    public Adapter(Context context, SQLiteDatabase db, Cursor cursor) {
-        super(context, cursor);
+    public Adapter(Context context, SQLiteDatabase db, List<Item> list) {
         this.context = context;
-        this.cursor = cursor;
+        this.list = list;
         this.db = db;
     }
 
@@ -47,23 +47,24 @@ public class Adapter extends CursorRecyclerViewAdapter<ItemViewHolder> {
     }
 
     @Override
-    public void onBindViewHolder(ItemViewHolder holder, Cursor cursor) {
-        Item item = Item.fromCursor(cursor);
-        Uri infoUri = Media.getInfoImageUri(db, item.id);
+    public void onBindViewHolder(ItemViewHolder holder, int position) {
+        Item item = list.get(position);
+        Log.i("FUCK", item.title+" "+item.imageUri);
+        Uri uri = Uri.parse(item.imageUri);
         holder.infoText.setText(item.title);
         holder.id = item.id;
         holder.context = this.context;
 
-        if(infoUri != null) {
-            Picasso.with(context).load(new File(infoUri.toString())).into(holder.infoImage);
+        if(uri != null) {
+            Picasso.with(context).load(new File(uri.toString())).into(holder.infoImage);
         } else {
             Picasso.with(context).load(R.drawable.progress_animation).into(holder.infoImage);
         }
 
-        setAnimation(holder, cursor.getPosition());
+        //setAnimation(holder, position);
     }
 
-    private void setAnimation(ItemViewHolder holder, int position) {
+    /*private void setAnimation(ItemViewHolder holder, int position) {
         // If the bound view wasn't previously displayed on screen, it's animated
         if (position > holder.lastPosition)
         {
@@ -76,5 +77,11 @@ public class Adapter extends CursorRecyclerViewAdapter<ItemViewHolder> {
     @Override
     public void onViewDetachedFromWindow(ItemViewHolder holder) {
         holder.clearAnimation();
+    }*/
+
+    // Return the size of your dataset (invoked by the layout manager)
+    @Override
+    public int getItemCount() {
+        return list.size();
     }
 }

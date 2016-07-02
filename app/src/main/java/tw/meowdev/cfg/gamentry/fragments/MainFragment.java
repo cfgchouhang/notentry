@@ -20,6 +20,7 @@ import android.widget.AbsListView;
 import android.widget.Button;
 import android.widget.EditText;
 
+import java.util.ArrayList;
 import java.util.Collections;
 
 import tw.meowdev.cfg.gamentry.MainActivity;
@@ -41,13 +42,14 @@ public class MainFragment extends Fragment {
     private FloatingActionButton fab;
     private SQLiteDatabase db = null;
     private Cursor cursor;
+    private ArrayList<Item> itemList;
 
     // Extend the Callback class
     ItemTouchHelper.Callback _ithCallback = new ItemTouchHelper.Callback() {
         //and in your imlpementaion of
         public boolean onMove(RecyclerView recyclerView, RecyclerView.ViewHolder viewHolder, RecyclerView.ViewHolder target) {
             // get the viewHolder's and target's positions in your adapter data, swap them
-            Collections.swap(adapter., viewHolder.getAdapterPosition(), target.getAdapterPosition());
+            Collections.swap(itemList, viewHolder.getAdapterPosition(), target.getAdapterPosition());
             // and notify the adapter that its dataset has changed
             adapter.notifyItemMoved(viewHolder.getAdapterPosition(), target.getAdapterPosition());
 
@@ -81,9 +83,8 @@ public class MainFragment extends Fragment {
         super.onCreate(savedInstanceState);
 
         db = Database.getWritableDatabase(getContext());
-        cursor = db.query(Item.tableName, null, null, null, null, null, null);
-
-        adapter = new Adapter(getActivity(), db, cursor);
+        itemList = new ArrayList<Item>();
+        adapter = new Adapter(getActivity(), db, itemList);
     }
 
     @Override
@@ -115,11 +116,11 @@ public class MainFragment extends Fragment {
         recyclerView.setLayoutManager(layoutManager);
         recyclerView.setAdapter(adapter);
 
-// Create an `ItemTouchHelper` and attach it to the `RecyclerView`
+        Item.loadList(db, itemList);
+        adapter.notifyDataSetChanged();
+
         ItemTouchHelper ith = new ItemTouchHelper(_ithCallback);
         ith.attachToRecyclerView(recyclerView);
-
-
 
         return view;
     }
@@ -127,18 +128,5 @@ public class MainFragment extends Fragment {
     @Override
     public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
-
-        /*if(savedInstanceState != null) {
-            int p = savedInstanceState.getInt("position");
-            layoutManager.scrollToPosition( p != RecyclerView.NO_POSITION ? p : 0);
-        }*/
     }
-
-    /*@Override
-    public void onSaveInstanceState(Bundle outState) {
-        outState.putInt("position", layoutManager.findFirstCompletelyVisibleItemPositions(null)[0]);
-        super.onSaveInstanceState(outState);
-    }*/
-
-
 }

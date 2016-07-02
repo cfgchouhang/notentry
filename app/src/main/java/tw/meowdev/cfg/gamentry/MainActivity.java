@@ -12,9 +12,14 @@ import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 
+import java.net.URI;
+import java.util.HashMap;
+import java.util.Map;
+
 import tw.meowdev.cfg.gamentry.fragments.EditFragment;
 import tw.meowdev.cfg.gamentry.fragments.MainFragment;
 import tw.meowdev.cfg.gamentry.managers.Database;
+import tw.meowdev.cfg.gamentry.tools.Misc;
 
 public class MainActivity extends AppCompatActivity {
     private FragmentManager fragmentManager;
@@ -64,18 +69,17 @@ public class MainActivity extends AppCompatActivity {
     protected void onNewIntent(Intent intent) {
         Uri uri = intent.getData();
         if(uri != null) {
-            String action = uri.getHost();
             EditFragment fragment = (EditFragment)getSupportFragmentManager().findFragmentByTag("edit");
+            Map<String, String> urls = Misc.splitQuery(uri);
             if(fragment == null) {
                 Bundle bundle = new Bundle();
-                bundle.putInt("action", EditFragment.ACTION_ADD);
+                bundle.putInt("action", EditFragment.ACTION_AUTO_ADD);
                 bundle.putString("title", uri.getPath().substring(1));
-                bundle.putString("url", uri.getQuery());
-                bundle.putString("content", "empty");
+                bundle.putString("webUrl", urls.get("web"));
+                bundle.putString("imageUrl", urls.get("image"));
                 gotoEditFragment(bundle);
-
             } else {
-                fragment.edit(uri.getPath().substring(1), uri.getQuery(), "empty");
+                fragment.add(uri.getPath().substring(1), urls.get("web"), urls.get("image"));
             }
         }
     }
@@ -133,4 +137,6 @@ public class MainActivity extends AppCompatActivity {
         transaction.commit();
         currentFragment = EDIT_FRAGMENT;
     }
+
+
 }
