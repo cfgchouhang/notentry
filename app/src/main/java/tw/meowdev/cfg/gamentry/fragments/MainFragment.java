@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
+import android.graphics.Point;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.Fragment;
@@ -13,12 +14,16 @@ import android.support.v4.app.FragmentTransaction;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.StaggeredGridLayoutManager;
 import android.support.v7.widget.helper.ItemTouchHelper;
+import android.util.Log;
+import android.view.Display;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.animation.LinearInterpolator;
 import android.widget.AbsListView;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.RelativeLayout;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -43,6 +48,7 @@ public class MainFragment extends Fragment {
     private SQLiteDatabase db = null;
     private Cursor cursor;
     private ArrayList<Item> itemList;
+    private int screenHeight;
 
     // Extend the Callback class
     ItemTouchHelper.Callback _ithCallback = new ItemTouchHelper.Callback() {
@@ -94,36 +100,48 @@ public class MainFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_main, container, false);
 
+
+
         fab = (FloatingActionButton)view.findViewById(R.id.fab);
         fab.setOnClickListener(listener);
 
         recyclerView = (RecyclerView)view.findViewById(R.id.recyclerView);
+
         recyclerView.addOnScrollListener(new RecyclerView.OnScrollListener(){
+            int margin = ((RelativeLayout.LayoutParams)fab.getLayoutParams()).bottomMargin;
+
             @Override
             public void onScrolled(RecyclerView recyclerView, int dx, int dy){
-                if (dy > 0 ||dy<0 && fab.isShown()) {
-                    fab.hide();
+                RelativeLayout.LayoutParams layoutParams = (RelativeLayout.LayoutParams)fab.getLayoutParams();
+                int[] loc = new int[2];
+                fab.getLocationOnScreen(loc);
+                if (dy > 0 && loc[1] < screenHeight) {
+                    layoutParams.bottomMargin -= (int)(dy*0.37);
+                    fab.setLayoutParams(layoutParams);
+                } else if(dy < 0 && layoutParams.bottomMargin < margin) {
+                    layoutParams.bottomMargin -= (int)(dy*0.37);
+                    fab.setLayoutParams(layoutParams);
                 }
             }
 
             @Override
             public void onScrollStateChanged(RecyclerView recyclerView, int newState) {
                 if (newState == AbsListView.OnScrollListener.SCROLL_STATE_IDLE){
-                    fab.show();
+                    //fab.show();
                 }
                 super.onScrollStateChanged(recyclerView, newState);
             }
         });
 
+        Item.loadList(db, itemList);
+        adapter.notifyDataSetChanged();
+
         layoutManager = new StaggeredGridLayoutManager(1, StaggeredGridLayoutManager.VERTICAL);
         recyclerView.setLayoutManager(layoutManager);
         recyclerView.setAdapter(adapter);
 
-        Item.loadList(db, itemList);
-        adapter.notifyDataSetChanged();
-
-        ItemTouchHelper ith = new ItemTouchHelper(_ithCallback);
-        ith.attachToRecyclerView(recyclerView);
+        //ItemTouchHelper ith = new ItemTouchHelper(_ithCallback);
+        //ith.attachToRecyclerView(recyclerView);
 
         return view;
     }
@@ -131,5 +149,10 @@ public class MainFragment extends Fragment {
     @Override
     public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
+
+        Display display = getActivity().getWindowManager().getDefaultDisplay();
+        Point size = new Point();
+        display.getSize(size);
+        screenHeight = size.y;
     }
 }

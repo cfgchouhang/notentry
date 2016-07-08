@@ -4,6 +4,7 @@ import android.content.Context;
 import android.os.Bundle;
 import android.support.v7.widget.CardView;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.View;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
@@ -41,7 +42,9 @@ public class ItemViewHolder extends RecyclerView.ViewHolder implements View.OnCl
             bundle.putLong("id", id);
             ((MainActivity)context).gotoEditFragment(bundle);
         } else {
-
+            Bundle bundle = new Bundle();
+            bundle.putLong("id", id);
+            ((MainActivity)context).gotoViewFragment(bundle);
         }
     }
 

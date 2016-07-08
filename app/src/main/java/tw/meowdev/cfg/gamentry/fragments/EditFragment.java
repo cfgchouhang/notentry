@@ -88,7 +88,7 @@ public class EditFragment extends Fragment {
         public void onBitmapLoaded(final Bitmap bitmap, final Picasso.LoadedFrom from) {
             new AsyncTask<Object, Void, Void>() {
                 protected Void doInBackground(Object... objs) {
-                    Bitmap tmp= (Bitmap)objs[0];
+                    Bitmap tmp = (Bitmap)objs[0];
                     Item item = (Item)objs[1];
                     File file;
 
@@ -97,17 +97,22 @@ public class EditFragment extends Fragment {
                     Display display = activity.getWindowManager().getDefaultDisplay();
                     Point size = new Point();
                     display.getSize(size);
-                    int width = size.x;
-                    Bitmap bitmap = Bitmap.createScaledBitmap(tmp, width, tmp.getHeight()*width/tmp.getWidth(), false);
+                    int windowWidth = size.x;
 
-                    // sync image uri of item into db
-                    Log.d("FUCK", " ft "+item.imageUri);
-                    if(item.imageUri.equals("")) {
-                        file = new File(String.format("%s/%s.jpg", storagePath, System.currentTimeMillis()));
-                        item.updateImage(db, file.toString());
-                    } else {
+                    Bitmap bitmap;
+                    if(tmp.getWidth() > windowWidth)
+                        bitmap = Bitmap.createScaledBitmap(tmp, windowWidth, tmp.getHeight()*windowWidth/tmp.getWidth(), false);
+                    else
+                        bitmap = tmp;
+
+                    // delete original image if existed and store the image file uri
+                    if(!item.imageUri.equals("")) {
                         file = new File(item.imageUri);
+                        if(file.delete())
+                            Log.d("FILE", "delete file "+item.imageUri);
                     }
+                    file = new File(String.format("%s/%s.jpg", storagePath, System.currentTimeMillis()));
+                    item.updateImage(db, file.toString());
 
                     // store the image resource
                     try {

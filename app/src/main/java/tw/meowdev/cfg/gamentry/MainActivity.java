@@ -18,6 +18,7 @@ import java.util.Map;
 
 import tw.meowdev.cfg.gamentry.fragments.EditFragment;
 import tw.meowdev.cfg.gamentry.fragments.MainFragment;
+import tw.meowdev.cfg.gamentry.fragments.ViewFragment;
 import tw.meowdev.cfg.gamentry.managers.Database;
 import tw.meowdev.cfg.gamentry.tools.Misc;
 
@@ -115,8 +116,6 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void gotoEditFragment(Bundle bundle) {
-        FragmentManager fragmentManager = getSupportFragmentManager();
-
         EditFragment editFragment = new EditFragment();
         editFragment.setArguments(bundle);
 
@@ -128,5 +127,15 @@ public class MainActivity extends AppCompatActivity {
         currentFragment = EDIT_FRAGMENT;
     }
 
+    public void gotoViewFragment(Bundle bundle) {
+        ViewFragment viewFragment = new ViewFragment();
+        viewFragment.setArguments(bundle);
+
+        FragmentTransaction transaction = fragmentManager.beginTransaction();
+        transaction.setCustomAnimations(R.anim.enter, R.anim.exit, R.anim.pop_enter, R.anim.pop_exit);
+        transaction.replace(R.id.container, viewFragment, "view");
+        transaction.addToBackStack(null);
+        transaction.commit();
+    }
 
 }
