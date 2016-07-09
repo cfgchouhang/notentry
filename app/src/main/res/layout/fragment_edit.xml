@@ -43,7 +43,17 @@
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
         android:layout_toEndOf="@+id/btnWeb"
+        android:layout_toStartOf="@+id/btnDelete"
         android:text="Save" />
+
+    <Button
+        android:id="@+id/btnDelete"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentRight="true"
+        android:visibility="gone"
+        android:text="Delete" />
 
     <RelativeLayout
         android:id="@+id/webLayout"

@@ -3,6 +3,7 @@ package tw.meowdev.cfg.gamentry.fragments;
 import android.animation.Animator;
 import android.app.Activity;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Bitmap;
@@ -15,6 +16,7 @@ import android.os.Environment;
 import android.os.Handler;
 import android.os.Message;
 import android.support.v4.app.Fragment;
+import android.support.v7.app.AlertDialog;
 import android.util.Log;
 import android.view.Display;
 import android.view.GestureDetector;
@@ -46,7 +48,7 @@ import tw.meowdev.cfg.gamentry.models.Item;
  * Created by cfg on 5/23/16.
  */
 public class EditFragment extends Fragment {
-    private Button btnSave, btnWeb;
+    private Button btnSave, btnWeb, btnDelete;
     private EditText title, webUrl, imgUrl, urlbar;
     private WebView webView;
     private SQLiteDatabase db;
@@ -61,6 +63,8 @@ public class EditFragment extends Fragment {
     private Picasso picasso;
     private GestureDetector gestureDetector;
     private RelativeLayout webLayout;
+
+    private AlertDialog dialog;
 
     private static ArrayList<FileTarget> list = new ArrayList<FileTarget>();
 
@@ -153,11 +157,18 @@ public class EditFragment extends Fragment {
                 webLayout.setVisibility(View.GONE);
             } else if(view.getId() == R.id.btnWeb) {
                 slideWebLayout();
+            } else if(view.getId() == R.id.btnDelete) {
+                dialog.show();
             }
         }
     };
 
-    public void addOrEdit(String title, String webUrl, String imgUrl) {
+    private void delete() {
+        item.delete(db);
+        getActivity().onBackPressed();
+    }
+
+    private void addOrEdit(String title, String webUrl, String imgUrl) {
         item.set(title, webUrl);
         item.insertOrUpdate(db);
 
@@ -183,6 +194,7 @@ public class EditFragment extends Fragment {
     }
 
     private void setContent() {
+        btnDelete.setVisibility(View.VISIBLE);
         title.setText(item.title);
         webUrl.setText(item.webUrl);
     }
@@ -213,6 +225,8 @@ public class EditFragment extends Fragment {
 
         btnSave = (Button)view.findViewById(R.id.btnSave);
         btnSave.setOnClickListener(onClickListener);
+        btnDelete = (Button)view.findViewById(R.id.btnDelete);
+        btnDelete.setOnClickListener(onClickListener);
 
         btnWeb = (Button)view.findViewById(R.id.btnWeb);
         btnWeb.setOnClickListener(onClickListener);
@@ -250,6 +264,23 @@ public class EditFragment extends Fragment {
         });
 
         webView.loadUrl("http://www.google.com");
+
+        AlertDialog.Builder builder = new AlertDialog.Builder(getContext(), R.style.AppCompatAlertDialogStyle);
+        //builder.setTitle("Dialog");
+        builder.setMessage("Are you sure to delete?");
+        builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialogInterface, int i) {
+                delete();
+            }
+        });
+        builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialogInterface, int i) {
+                dialog.cancel();
+            }
+        });
+        dialog = builder.create();
 
         return view;
     }

@@ -85,6 +85,10 @@ public class Item {
         return id;
     }
 
+    public void delete(SQLiteDatabase db) {
+        db.delete(tableName, "`_id`=?", new String[]{Long.toString(this.id)});
+    }
+
     public void updateImage(SQLiteDatabase db, String imageUri) {
         Log.d("FUCK", "Update "+id+" "+imageUri);
         ContentValues cv = new ContentValues();
